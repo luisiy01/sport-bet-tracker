@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { DeleteBetButton } from "@/components/bets/DeleteBetButton";
+import { Users } from "lucide-react";
 
 export default async function DashboardPage() {
   const userId = "user-demo-123";
@@ -44,6 +45,14 @@ export default async function DashboardPage() {
             >
               <History className="h-4 w-4" />
               Ver Historial
+            </Link>
+
+            <Link
+              href="/tipsters"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-zinc-300 transition hover:bg-zinc-800 hover:text-white"
+            >
+              <Users className="h-4 w-4" />
+              Tipsters
             </Link>
 
             <Link
