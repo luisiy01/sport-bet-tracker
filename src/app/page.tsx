@@ -1,6 +1,6 @@
-import { getDashboardStats } from '@/app/actions/dashboard';
-import { KpiCard } from '@/components/dashboard/KpiCard';
-import { formatAmericanOdds } from '@/lib/utils/odds';
+import { getDashboardStats } from "@/app/actions/dashboard";
+import { KpiCard } from "@/components/dashboard/KpiCard";
+import { formatAmericanOdds } from "@/lib/utils/odds";
 import {
   TrendingUp,
   Percent,
@@ -8,12 +8,14 @@ import {
   Clock,
   DollarSign,
   PlusCircle,
-} from 'lucide-react';
-import Link from 'next/link';
+} from "lucide-react";
+import Link from "next/link";
+
+import { SettleBetActions } from "@/components/bets/SettleBetActions";
 
 export default async function DashboardPage() {
   // Por ahora usamos un userId dummy hasta integrar la autenticación
-  const userId = 'user-demo-123';
+  const userId = "user-demo-123";
   const stats = await getDashboardStats(userId);
 
   const isProfitPositive = stats.netProfit >= 0;
@@ -24,7 +26,9 @@ export default async function DashboardPage() {
         {/* Encabezado */}
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Tracker de Apuestas</h1>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Tracker de Apuestas
+            </h1>
             <p className="text-sm text-zinc-400">
               Resumen de rendimiento, métricas y balance general.
             </p>
@@ -46,7 +50,7 @@ export default async function DashboardPage() {
             value={`$${stats.netProfit.toFixed(2)}`}
             subtitle={`Monto apostado: $${stats.totalStaked.toFixed(2)}`}
             icon={<DollarSign className="h-5 w-5" />}
-            trend={isProfitPositive ? 'positive' : 'negative'}
+            trend={isProfitPositive ? "positive" : "negative"}
           />
 
           <KpiCard
@@ -54,7 +58,7 @@ export default async function DashboardPage() {
             value={`${stats.roi.toFixed(2)}%`}
             subtitle="Retorno sobre la inversión"
             icon={<TrendingUp className="h-5 w-5" />}
-            trend={stats.roi >= 0 ? 'positive' : 'negative'}
+            trend={stats.roi >= 0 ? "positive" : "negative"}
           />
 
           <KpiCard
@@ -62,7 +66,7 @@ export default async function DashboardPage() {
             value={`${stats.winRate.toFixed(1)}%`}
             subtitle={`${stats.wonBets}G - ${stats.lostBets}P de ${stats.wonBets + stats.lostBets} resueltas`}
             icon={<Percent className="h-5 w-5" />}
-            trend={stats.winRate >= 50 ? 'positive' : 'neutral'}
+            trend={stats.winRate >= 50 ? "positive" : "neutral"}
           />
 
           <KpiCard
@@ -76,11 +80,14 @@ export default async function DashboardPage() {
 
         {/* Actividad Reciente */}
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur-sm">
-          <h2 className="mb-4 text-lg font-semibold text-zinc-200">Últimas Apuestas</h2>
+          <h2 className="mb-4 text-lg font-semibold text-zinc-200">
+            Últimas Apuestas
+          </h2>
 
           {stats.recentBets.length === 0 ? (
             <p className="py-8 text-center text-sm text-zinc-500">
-              Aún no tienes apuestas registradas. Haz clic en "Nueva Apuesta" para comenzar.
+              Aún no tienes apuestas registradas. Haz clic en "Nueva Apuesta"
+              para comenzar.
             </p>
           ) : (
             <div className="divide-y divide-zinc-800/60 overflow-x-auto">
@@ -99,7 +106,9 @@ export default async function DashboardPage() {
                     <tr key={bet.id} className="hover:bg-zinc-800/30">
                       <td className="py-3 font-medium">
                         <div>{bet.event}</div>
-                        <div className="text-xs text-zinc-500">{bet.selection}</div>
+                        <div className="text-xs text-zinc-500">
+                          {bet.selection}
+                        </div>
                       </td>
                       <td className="py-3 text-zinc-400">{bet.sport}</td>
                       <td className="py-3 font-mono">
@@ -109,15 +118,21 @@ export default async function DashboardPage() {
                       <td className="py-3">
                         <span
                           className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            bet.status === 'WON'
-                              ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/50'
-                              : bet.status === 'LOST'
-                              ? 'bg-rose-950 text-rose-400 border border-rose-800/50'
-                              : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
+                            bet.status === "WON"
+                              ? "bg-emerald-950 text-emerald-400 border border-emerald-800/50"
+                              : bet.status === "LOST"
+                                ? "bg-rose-950 text-rose-400 border border-rose-800/50"
+                                : "bg-zinc-800 text-zinc-400 border border-zinc-700"
                           }`}
                         >
                           {bet.status}
                         </span>
+                      </td>
+                      <td className="py-3">
+                        <SettleBetActions
+                          betId={bet.id}
+                          currentStatus={bet.status}
+                        />
                       </td>
                     </tr>
                   ))}

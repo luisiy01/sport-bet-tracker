@@ -76,3 +76,15 @@ export async function createBet(formData: FormData) {
   revalidatePath('/');
   redirect('/');
 }
+
+export async function settleBet(betId: string, status: BetStatus) {
+  await prisma.bet.update({
+    where: { id: betId },
+    data: {
+      status,
+      settledAt: new Date(),
+    },
+  });
+
+  revalidatePath('/');
+}
