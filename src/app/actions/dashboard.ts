@@ -40,7 +40,25 @@ export async function getDashboardStats(userId: string) {
   // ROI %
   const roi = totalStaked > 0 ? (netProfit / totalStaked) * 100 : 0;
 
+  let user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        id: userId,
+        email: 'demo@sportstracker.com',
+        name: 'Usuario Demo',
+        initialBankroll: 100,
+      },
+    });
+  }
+
+  console.log(user)
+
   return {
+    initialBankroll: Number(user.initialBankroll),
     totalBets,
     pendingBets: pendingBets.length,
     wonBets: wonBets.length,

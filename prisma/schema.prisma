@@ -35,13 +35,14 @@ enum BetStatus {
 }
 
 model User {
-  id        String    @id @default(uuid())
-  email     String    @unique
-  name      String?
-  bets      Bet[]
-  tipsters  Tipster[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id              String    @id @default(uuid())
+  email           String    @unique
+  name            String?
+  initialBankroll Decimal   @default(100)
+  bets            Bet[]
+  tipsters        Tipster[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 model Tipster {

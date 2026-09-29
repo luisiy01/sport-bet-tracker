@@ -1,10 +1,10 @@
 import { getDashboardStats } from "@/app/actions/dashboard";
+import { BankrollHeader } from "@/components/dashboard/BankrollHeader";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { formatAmericanOdds } from "@/lib/utils/odds";
 import {
   TrendingUp,
   Percent,
-  Target,
   Clock,
   DollarSign,
   PlusCircle,
@@ -42,6 +42,12 @@ export default async function DashboardPage() {
             Nueva Apuesta
           </Link>
         </div>
+
+        <BankrollHeader
+          userId={userId}
+          initialBankroll={stats.initialBankroll}
+          netProfit={stats.netProfit}
+        />
 
         {/* Grid de KPIs */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
