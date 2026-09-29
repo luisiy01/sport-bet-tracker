@@ -12,6 +12,7 @@ import {
 import Link from "next/link";
 
 import { SettleBetActions } from "@/components/bets/SettleBetActions";
+import { BankrollChart } from '@/components/dashboard/BankrollChart';
 
 export default async function DashboardPage() {
   // Por ahora usamos un userId dummy hasta integrar la autenticación
@@ -48,6 +49,9 @@ export default async function DashboardPage() {
           initialBankroll={stats.initialBankroll}
           netProfit={stats.netProfit}
         />
+
+        <BankrollChart data={stats.bankrollHistory} />
+
 
         {/* Grid de KPIs */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
