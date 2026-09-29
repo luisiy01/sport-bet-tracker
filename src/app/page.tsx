@@ -1,9 +1,9 @@
-import { getDashboardStats } from '@/app/actions/dashboard';
-import { BankrollHeader } from '@/components/dashboard/BankrollHeader';
-import { KpiCard } from '@/components/dashboard/KpiCard';
-import { BankrollChart } from '@/components/dashboard/BankrollChart';
-import { SettleBetActions } from '@/components/bets/SettleBetActions';
-import { formatAmericanOdds } from '@/lib/utils/odds';
+import { getDashboardStats } from "@/app/actions/dashboard";
+import { BankrollHeader } from "@/components/dashboard/BankrollHeader";
+import { KpiCard } from "@/components/dashboard/KpiCard";
+import { BankrollChart } from "@/components/dashboard/BankrollChart";
+import { SettleBetActions } from "@/components/bets/SettleBetActions";
+import { formatAmericanOdds } from "@/lib/utils/odds";
 import {
   TrendingUp,
   Percent,
@@ -12,11 +12,13 @@ import {
   PlusCircle,
   History,
   ArrowRight,
-} from 'lucide-react';
-import Link from 'next/link';
+  Edit3,
+} from "lucide-react";
+import Link from "next/link";
+import { DeleteBetButton } from "@/components/bets/DeleteBetButton";
 
 export default async function DashboardPage() {
-  const userId = 'user-demo-123';
+  const userId = "user-demo-123";
   const stats = await getDashboardStats(userId);
 
   const isProfitPositive = stats.netProfit >= 0;
@@ -27,7 +29,9 @@ export default async function DashboardPage() {
         {/* Encabezado Principal */}
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Tracker de Apuestas</h1>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Tracker de Apuestas
+            </h1>
             <p className="text-sm text-zinc-400">
               Resumen de rendimiento, métricas y balance general.
             </p>
@@ -66,7 +70,7 @@ export default async function DashboardPage() {
             value={`$${stats.netProfit.toFixed(2)}`}
             subtitle={`Monto apostado: $${stats.totalStaked.toFixed(2)}`}
             icon={<DollarSign className="h-5 w-5" />}
-            trend={isProfitPositive ? 'positive' : 'negative'}
+            trend={isProfitPositive ? "positive" : "negative"}
           />
 
           <KpiCard
@@ -74,7 +78,7 @@ export default async function DashboardPage() {
             value={`${stats.roi.toFixed(2)}%`}
             subtitle="Retorno sobre la inversión"
             icon={<TrendingUp className="h-5 w-5" />}
-            trend={stats.roi >= 0 ? 'positive' : 'negative'}
+            trend={stats.roi >= 0 ? "positive" : "negative"}
           />
 
           <KpiCard
@@ -82,7 +86,7 @@ export default async function DashboardPage() {
             value={`${stats.winRate.toFixed(1)}%`}
             subtitle={`${stats.wonBets}G - ${stats.lostBets}P de ${stats.wonBets + stats.lostBets} resueltas`}
             icon={<Percent className="h-5 w-5" />}
-            trend={stats.winRate >= 50 ? 'positive' : 'neutral'}
+            trend={stats.winRate >= 50 ? "positive" : "neutral"}
           />
 
           <KpiCard
@@ -100,7 +104,9 @@ export default async function DashboardPage() {
         {/* Actividad Reciente */}
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur-sm">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-zinc-200">Últimas Apuestas</h2>
+            <h2 className="text-lg font-semibold text-zinc-200">
+              Últimas Apuestas
+            </h2>
             <Link
               href="/bets"
               className="inline-flex items-center gap-1 text-xs font-medium text-emerald-400 hover:text-emerald-300 transition"
@@ -111,7 +117,8 @@ export default async function DashboardPage() {
 
           {stats.recentBets.length === 0 ? (
             <p className="py-8 text-center text-sm text-zinc-500">
-              Aún no tienes apuestas registradas. Haz clic en "Nueva Apuesta" para comenzar.
+              Aún no tienes apuestas registradas. Haz clic en "Nueva Apuesta"
+              para comenzar.
             </p>
           ) : (
             <div className="divide-y divide-zinc-800/60 overflow-x-auto">
@@ -130,7 +137,9 @@ export default async function DashboardPage() {
                     <tr key={bet.id} className="hover:bg-zinc-800/30">
                       <td className="py-3 font-medium">
                         <div>{bet.event}</div>
-                        <div className="text-xs text-zinc-500">{bet.selection}</div>
+                        <div className="text-xs text-zinc-500">
+                          {bet.selection}
+                        </div>
                       </td>
                       <td className="py-3 text-zinc-400">{bet.sport}</td>
                       <td className="py-3 font-mono">
@@ -138,7 +147,22 @@ export default async function DashboardPage() {
                       </td>
                       <td className="py-3">${Number(bet.stake).toFixed(2)}</td>
                       <td className="py-3">
-                        <SettleBetActions betId={bet.id} currentStatus={bet.status} />
+                        <div className="flex items-center gap-2">
+                          <SettleBetActions
+                            betId={bet.id}
+                            currentStatus={bet.status}
+                          />
+
+                          <Link
+                            href={`/bets/${bet.id}/edit`}
+                            className="rounded p-1 text-zinc-500 hover:bg-zinc-800 hover:text-white transition"
+                            title="Editar"
+                          >
+                            <Edit3 className="h-4 w-4" />
+                          </Link>
+
+                          <DeleteBetButton betId={bet.id} />
+                        </div>
                       </td>
                     </tr>
                   ))}

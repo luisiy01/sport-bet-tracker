@@ -1,9 +1,11 @@
-import { getFilteredBets } from '@/app/actions/bets-history';
-import { BetFilters } from '@/components/bets/BetFilters';
-import { SettleBetActions } from '@/components/bets/SettleBetActions';
-import { formatAmericanOdds } from '@/lib/utils/odds';
-import { ArrowLeft, PlusCircle, FilterX } from 'lucide-react';
-import Link from 'next/link';
+import { getFilteredBets } from "@/app/actions/bets-history";
+import { BetFilters } from "@/components/bets/BetFilters";
+import { SettleBetActions } from "@/components/bets/SettleBetActions";
+import { formatAmericanOdds } from "@/lib/utils/odds";
+import { ArrowLeft, PlusCircle, FilterX } from "lucide-react";
+import Link from "next/link";
+import { DeleteBetButton } from "@/components/bets/DeleteBetButton";
+import { Edit3 } from "lucide-react";
 
 interface BetsPageProps {
   searchParams: Promise<{
@@ -15,7 +17,7 @@ interface BetsPageProps {
 
 export default async function BetsPage({ searchParams }: BetsPageProps) {
   const filters = await searchParams;
-  const userId = 'user-demo-123';
+  const userId = "user-demo-123";
 
   const { bets, tipsters } = await getFilteredBets(userId, filters);
 
@@ -32,9 +34,14 @@ export default async function BetsPage({ searchParams }: BetsPageProps) {
               <ArrowLeft className="h-5 w-5" />
             </Link>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Historial de Apuestas</h1>
+              <h1 className="text-2xl font-bold tracking-tight">
+                Historial de Apuestas
+              </h1>
               <p className="text-sm text-zinc-400">
-                {bets.length} {bets.length === 1 ? 'apuesta registrada' : 'apuestas registradas'}
+                {bets.length}{" "}
+                {bets.length === 1
+                  ? "apuesta registrada"
+                  : "apuestas registradas"}
               </p>
             </div>
           </div>
@@ -81,20 +88,24 @@ export default async function BetsPage({ searchParams }: BetsPageProps) {
                   {bets.map((bet) => (
                     <tr key={bet.id} className="hover:bg-zinc-800/30">
                       <td className="py-3 text-xs text-zinc-500 whitespace-nowrap">
-                        {new Date(bet.placedAt).toLocaleDateString('es-MX', {
-                          day: '2-digit',
-                          month: 'short',
-                          year: 'numeric',
+                        {new Date(bet.placedAt).toLocaleDateString("es-MX", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
                         })}
                       </td>
                       <td className="py-3 font-medium">
                         <div>{bet.event}</div>
-                        <div className="text-xs text-zinc-500">{bet.selection}</div>
+                        <div className="text-xs text-zinc-500">
+                          {bet.selection}
+                        </div>
                       </td>
                       <td className="py-3 text-zinc-400">
                         <div>{bet.sport}</div>
                         {bet.league && (
-                          <div className="text-xs text-zinc-600">{bet.league}</div>
+                          <div className="text-xs text-zinc-600">
+                            {bet.league}
+                          </div>
                         )}
                       </td>
                       <td className="py-3 text-xs text-zinc-400">
@@ -107,7 +118,22 @@ export default async function BetsPage({ searchParams }: BetsPageProps) {
                       </td>
                       <td className="py-3">${Number(bet.stake).toFixed(2)}</td>
                       <td className="py-3">
-                        <SettleBetActions betId={bet.id} currentStatus={bet.status} />
+                        <div className="flex items-center gap-2">
+                          <SettleBetActions
+                            betId={bet.id}
+                            currentStatus={bet.status}
+                          />
+
+                          <Link
+                            href={`/bets/${bet.id}/edit`}
+                            className="rounded p-1 text-zinc-500 hover:bg-zinc-800 hover:text-white transition"
+                            title="Editar"
+                          >
+                            <Edit3 className="h-4 w-4" />
+                          </Link>
+
+                          <DeleteBetButton betId={bet.id} />
+                        </div>
                       </td>
                     </tr>
                   ))}

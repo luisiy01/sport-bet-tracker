@@ -88,3 +88,45 @@ export async function settleBet(betId: string, status: BetStatus) {
 
   revalidatePath('/');
 }
+
+// En src/app/actions/bets.ts
+
+export async function deleteBet(betId: string) {
+  await prisma.bet.delete({
+    where: { id: betId },
+  });
+
+  revalidatePath('/');
+  revalidatePath('/bets');
+}
+
+export async function updateBet(betId: string, formData: FormData) {
+  const sport = formData.get('sport') as Sport;
+  const league = formData.get('league') as string;
+  const event = formData.get('event') as string;
+  const selection = formData.get('selection') as string;
+  const betType = formData.get('betType') as BetType;
+  const odds = parseFloat(formData.get('odds') as string);
+  const stake = parseFloat(formData.get('stake') as string);
+  const bookmaker = formData.get('bookmaker') as string;
+  const notes = formData.get('notes') as string;
+
+  await prisma.bet.update({
+    where: { id: betId },
+    data: {
+      sport,
+      league: league || null,
+      event,
+      selection,
+      betType,
+      odds,
+      stake,
+      bookmaker: bookmaker || null,
+      notes: notes || null,
+    },
+  });
+
+  revalidatePath('/');
+  revalidatePath('/bets');
+  redirect('/bets');
+}
