@@ -39,6 +39,17 @@ export interface BetTypePerformance {
   roi: number;
 }
 
+export interface OddsRangePerformance {
+  rangeLabel: string;
+  totalBets: number;
+  wonBets: number;
+  lostBets: number;
+  totalStaked: number;
+  netProfit: number;
+  winRate: number;
+  roi: number;
+}
+
 // En src/app/actions/dashboard.ts
 // Añade el cálculo de la historia del Bankroll dentro de getDashboardStats:
 
@@ -330,6 +341,95 @@ export async function getDashboardStats(userId: string) {
 
   betTypePerformanceStats.sort((a, b) => b.netProfit - a.netProfit);
 
+  const RANGES = [
+    {
+      id: "FAV_HIGH",
+      label: "Favoritos (-150 o menos)",
+      check: (o: number) => o <= -150,
+    },
+    {
+      id: "FAV_MOD",
+      label: "Línea / Tablas (-149 a +110)",
+      check: (o: number) => o > -150 && o <= 110,
+    },
+    {
+      id: "DOG_MOD",
+      label: "Underdogs (+111 a +200)",
+      check: (o: number) => o > 110 && o <= 200,
+    },
+    {
+      id: "DOG_HIGH",
+      label: "Underdogs Altos (+201+)",
+      check: (o: number) => o > 200,
+    },
+  ];
+
+  const oddsRangeMap = new Map<
+    string,
+    {
+      label: string;
+      wonBets: number;
+      lostBets: number;
+      totalStaked: number;
+      netProfit: number;
+      totalBets: number;
+    }
+  >();
+
+  RANGES.forEach((r) => {
+    oddsRangeMap.set(r.id, {
+      label: r.label,
+      wonBets: 0,
+      lostBets: 0,
+      totalStaked: 0,
+      netProfit: 0,
+      totalBets: 0,
+    });
+  });
+
+  bets.forEach((bet) => {
+    const odds = Number(bet.odds) || 0;
+    const matchedRange = RANGES.find((r) => r.check(odds)) || RANGES[1];
+
+    const rangeData = oddsRangeMap.get(matchedRange.id)!;
+    rangeData.totalBets += 1;
+
+    if (bet.status === "WON" || bet.status === "LOST") {
+      const stake = Number(bet.stake) || 0;
+      const profit =
+        bet.status === "WON" ? calculateProfit(odds, stake) : -stake;
+
+      rangeData.totalStaked += stake;
+      rangeData.netProfit += profit;
+
+      if (bet.status === "WON") rangeData.wonBets += 1;
+      if (bet.status === "LOST") rangeData.lostBets += 1;
+    }
+  });
+
+  const oddsRangePerformanceStats: OddsRangePerformance[] = [];
+
+  oddsRangeMap.forEach((data) => {
+    if (data.totalBets > 0) {
+      const settledCount = data.wonBets + data.lostBets;
+      const winRate =
+        settledCount > 0 ? (data.wonBets / settledCount) * 100 : 0;
+      const roi =
+        data.totalStaked > 0 ? (data.netProfit / data.totalStaked) * 100 : 0;
+
+      oddsRangePerformanceStats.push({
+        rangeLabel: data.label,
+        totalBets: data.totalBets,
+        wonBets: data.wonBets,
+        lostBets: data.lostBets,
+        totalStaked: Number(data.totalStaked.toFixed(2)),
+        netProfit: Number(data.netProfit.toFixed(2)),
+        winRate: Number(winRate.toFixed(1)),
+        roi: Number(roi.toFixed(1)),
+      });
+    }
+  });
+
   return {
     initialBankroll,
     totalBets,
@@ -345,5 +445,6 @@ export async function getDashboardStats(userId: string) {
     dailyStats,
     sportPerformanceStats,
     betTypePerformanceStats,
+    oddsRangePerformanceStats,
   };
 }

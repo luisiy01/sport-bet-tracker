@@ -20,6 +20,7 @@ import { Users } from "lucide-react";
 import { DailyPerformanceChart } from "@/components/dashboard/DailyPerformanceChart";
 import { SportPerformanceChart } from "@/components/dashboard/SportPerformanceChart";
 import { BetTypePerformanceChart } from "@/components/dashboard/BetTypePerformanceChart";
+import { OddsRangePerformanceChart } from "@/components/dashboard/OddsRangePerformanceChart";
 
 export default async function DashboardPage() {
   const userId = "user-demo-123";
@@ -80,6 +81,7 @@ export default async function DashboardPage() {
           <DailyPerformanceChart data={stats.dailyStats} />
           <SportPerformanceChart data={stats.sportPerformanceStats} />
           <BetTypePerformanceChart data={stats.betTypePerformanceStats}/>
+          <OddsRangePerformanceChart data={stats.oddsRangePerformanceStats}/>
         </div>
 
         {/* Grid de KPIs */}
