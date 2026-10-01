@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Sport {
+  BASEBALL
+  AMERICAN_FOOTBALL
+  SOCCER
+  TENNIS
+  BASKETBALL
+  OTHER
+}
+
+enum BetType {
+  MONEYLINE
+  SPREAD
+  OVER_UNDER
+  PARLAY
+  PROP
+  FUTURE
+}
+
+enum BetStatus {
+  PENDING
+  WON
+  LOST
+  VOID
+  CASH_OUT
+}
+
+model User {
+  id              String    @id @default(uuid())
+  email           String    @unique
+  name            String?
+  initialBankroll Decimal   @default(100)
+  bets            Bet[]
+  tipsters        Tipster[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Tipster {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  platform  String?
+  notes     String?
+  isActive  Boolean  @default(true)
+  bets      Bet[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, name])
+}
+
+model Bet {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  tipsterId String?
+  tipster   Tipster?  @relation(fields: [tipsterId], references: [id], onDelete: SetNull)
+
+  sport     Sport
+  league    String?
+  event     String
+  selection String
+  betType   BetType
+  
+  odds      Decimal   // Momio Americano (ej. -110, 150)
+  stake     Decimal
+  payout    Decimal?
+  
+  status    BetStatus @default(PENDING)
+  bookmaker String?
+  notes     String?
+  
+  placedAt  DateTime  @default(now())
+  settledAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([tipsterId])
+  @@index([sport])
+  @@index([status])
+}
