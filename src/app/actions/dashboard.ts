@@ -12,6 +12,22 @@ export interface DailyStat {
   betsCount: number;
 }
 
+export interface SportPerformance {
+  sport: string;
+  totalBets: number;
+  wonBets: number;
+  lostBets: number;
+  totalStaked: number;
+  netProfit: number;
+  winRate: number;
+  roi: number;
+  leagues: Array<{
+    name: string;
+    netProfit: number;
+    totalBets: number;
+  }>;
+}
+
 // En src/app/actions/dashboard.ts
 // Añade el cálculo de la historia del Bankroll dentro de getDashboardStats:
 
@@ -157,6 +173,89 @@ export async function getDashboardStats(userId: string) {
     });
   });
 
+  const sportMap = new Map<
+    string,
+    {
+      wonBets: number;
+      lostBets: number;
+      totalStaked: number;
+      netProfit: number;
+      totalBets: number;
+      leaguesMap: Map<string, { netProfit: number; totalBets: number }>;
+    }
+  >();
+
+  bets.forEach((bet) => {
+    const sportKey = bet.sport;
+    const leagueKey = bet.league || "Sin Liga";
+
+    if (!sportMap.has(sportKey)) {
+      sportMap.set(sportKey, {
+        wonBets: 0,
+        lostBets: 0,
+        totalStaked: 0,
+        netProfit: 0,
+        totalBets: 0,
+        leaguesMap: new Map(),
+      });
+    }
+
+    const sportData = sportMap.get(sportKey)!;
+    sportData.totalBets += 1;
+
+    if (!sportData.leaguesMap.has(leagueKey)) {
+      sportData.leaguesMap.set(leagueKey, { netProfit: 0, totalBets: 0 });
+    }
+    const leagueData = sportData.leaguesMap.get(leagueKey)!;
+    leagueData.totalBets += 1;
+
+    if (bet.status === "WON" || bet.status === "LOST") {
+      const stake = Number(bet.stake) || 0;
+      const odds = Number(bet.odds) || 0;
+      const profit =
+        bet.status === "WON" ? calculateProfit(odds, stake) : -stake;
+
+      sportData.totalStaked += stake;
+      sportData.netProfit += profit;
+      leagueData.netProfit += profit;
+
+      if (bet.status === "WON") sportData.wonBets += 1;
+      if (bet.status === "LOST") sportData.lostBets += 1;
+    }
+  });
+
+  const sportPerformanceStats: SportPerformance[] = [];
+
+  sportMap.forEach((data, sport) => {
+    const settledCount = data.wonBets + data.lostBets;
+    const winRate = settledCount > 0 ? (data.wonBets / settledCount) * 100 : 0;
+    const roi =
+      data.totalStaked > 0 ? (data.netProfit / data.totalStaked) * 100 : 0;
+
+    const leagues = Array.from(data.leaguesMap.entries()).map(
+      ([name, lData]) => ({
+        name,
+        netProfit: Number(lData.netProfit.toFixed(2)),
+        totalBets: lData.totalBets,
+      }),
+    );
+
+    sportPerformanceStats.push({
+      sport,
+      totalBets: data.totalBets,
+      wonBets: data.wonBets,
+      lostBets: data.lostBets,
+      totalStaked: Number(data.totalStaked.toFixed(2)),
+      netProfit: Number(data.netProfit.toFixed(2)),
+      winRate: Number(winRate.toFixed(1)),
+      roi: Number(roi.toFixed(1)),
+      leagues,
+    });
+  });
+
+  // Ordenar por mayor beneficio neto
+  sportPerformanceStats.sort((a, b) => b.netProfit - a.netProfit);
+
   return {
     initialBankroll,
     totalBets,
@@ -170,5 +269,6 @@ export async function getDashboardStats(userId: string) {
     recentBets,
     bankrollHistory,
     dailyStats,
+    sportPerformanceStats,
   };
 }
