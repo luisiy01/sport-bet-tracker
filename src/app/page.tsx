@@ -21,6 +21,8 @@ import { DailyPerformanceChart } from "@/components/dashboard/DailyPerformanceCh
 import { SportPerformanceChart } from "@/components/dashboard/SportPerformanceChart";
 import { BetTypePerformanceChart } from "@/components/dashboard/BetTypePerformanceChart";
 import { OddsRangePerformanceChart } from "@/components/dashboard/OddsRangePerformanceChart";
+import { StreaksCard } from "@/components/dashboard/StreaksCard";
+import { StakePerformanceChart } from "@/components/dashboard/StakePerformanceChart";
 
 export default async function DashboardPage() {
   const userId = "user-demo-123";
@@ -80,8 +82,10 @@ export default async function DashboardPage() {
           <BankrollChart data={stats.bankrollHistory} />
           <DailyPerformanceChart data={stats.dailyStats} />
           <SportPerformanceChart data={stats.sportPerformanceStats} />
-          <BetTypePerformanceChart data={stats.betTypePerformanceStats}/>
-          <OddsRangePerformanceChart data={stats.oddsRangePerformanceStats}/>
+          <BetTypePerformanceChart data={stats.betTypePerformanceStats} />
+          <OddsRangePerformanceChart data={stats.oddsRangePerformanceStats} />
+          <StreaksCard streaks={stats.streaks} />
+          <StakePerformanceChart data={stats.stakePerformanceStats} />
         </div>
 
         {/* Grid de KPIs */}

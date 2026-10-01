@@ -50,6 +50,22 @@ export interface OddsRangePerformance {
   roi: number;
 }
 
+export interface StreaksInfo {
+  currentStreak: { type: "WON" | "LOST" | "NONE"; count: number };
+  maxWinningStreak: number;
+  maxLosingStreak: number;
+}
+
+export interface StakePerformance {
+  label: string; // ej. "1 - 50", "51 - 100", "101 - 250", "251+"
+  totalBets: number;
+  wonBets: number;
+  lostBets: number;
+  netProfit: number;
+  roi: number;
+  winRate: number;
+}
+
 // En src/app/actions/dashboard.ts
 // Añade el cálculo de la historia del Bankroll dentro de getDashboardStats:
 
@@ -430,6 +446,98 @@ export async function getDashboardStats(userId: string) {
     }
   });
 
+  // 1. CÁLCULO DE RACHAS (Orden cronológico por settledAt / placedAt)
+  const settledBetsChronological = bets
+    .filter((b) => b.status === "WON" || b.status === "LOST")
+    .sort(
+      (a, b) =>
+        new Date(a.settledAt || a.placedAt).getTime() -
+        new Date(b.settledAt || b.placedAt).getTime(),
+    );
+
+  let currentStreakType: "WON" | "LOST" | "NONE" = "NONE";
+  let currentStreakCount = 0;
+  let maxWinningStreak = 0;
+  let maxLosingStreak = 0;
+
+  let tempWinStreak = 0;
+  let tempLossStreak = 0;
+
+  settledBetsChronological.forEach((bet) => {
+    if (bet.status === "WON") {
+      tempWinStreak++;
+      tempLossStreak = 0;
+      if (tempWinStreak > maxWinningStreak) maxWinningStreak = tempWinStreak;
+    } else if (bet.status === "LOST") {
+      tempLossStreak++;
+      tempWinStreak = 0;
+      if (tempLossStreak > maxLosingStreak) maxLosingStreak = tempLossStreak;
+    }
+  });
+
+  if (settledBetsChronological.length > 0) {
+    const lastBet =
+      settledBetsChronological[settledBetsChronological.length - 1];
+    currentStreakType = lastBet.status as "WON" | "LOST";
+
+    for (let i = settledBetsChronological.length - 1; i >= 0; i--) {
+      if (settledBetsChronological[i].status === currentStreakType) {
+        currentStreakCount++;
+      } else {
+        break;
+      }
+    }
+  }
+
+  const streaks: StreaksInfo = {
+    currentStreak: { type: currentStreakType, count: currentStreakCount },
+    maxWinningStreak,
+    maxLosingStreak,
+  };
+
+  // 2. RENDIMIENTO POR TAMAÑO DE STAKE
+  const STAKE_RANGES = [
+    { label: "Bajo ($1 - $50)", check: (s: number) => s <= 50 },
+    { label: "Medio ($51 - $150)", check: (s: number) => s > 50 && s <= 150 },
+    { label: "Alto ($151 - $300)", check: (s: number) => s > 150 && s <= 300 },
+    { label: "Muy Alto ($301+)", check: (s: number) => s > 300 },
+  ];
+
+  const stakePerformanceStats: StakePerformance[] = STAKE_RANGES.map(
+    (range) => {
+      const rangeBets = bets.filter((b) => range.check(Number(b.stake)));
+      const won = rangeBets.filter((b) => b.status === "WON");
+      const lost = rangeBets.filter((b) => b.status === "LOST");
+
+      let netProfit = 0;
+      let totalStaked = 0;
+
+      rangeBets.forEach((bet) => {
+        if (bet.status === "WON" || bet.status === "LOST") {
+          const stake = Number(bet.stake) || 0;
+          const odds = Number(bet.odds) || 0;
+          totalStaked += stake;
+          netProfit +=
+            bet.status === "WON" ? calculateProfit(odds, stake) : -stake;
+        }
+      });
+
+      const settledCount = won.length + lost.length;
+      const winRate = settledCount > 0 ? (won.length / settledCount) * 100 : 0;
+      const roi = totalStaked > 0 ? (netProfit / totalStaked) * 100 : 0;
+
+      return {
+        label: range.label,
+        totalBets: rangeBets.length,
+        wonBets: won.length,
+        lostBets: lost.length,
+        netProfit: Number(netProfit.toFixed(2)),
+        roi: Number(roi.toFixed(1)),
+        winRate: Number(winRate.toFixed(1)),
+      };
+    },
+  ).filter((s) => s.totalBets > 0);
+
   return {
     initialBankroll,
     totalBets,
@@ -446,5 +554,7 @@ export async function getDashboardStats(userId: string) {
     sportPerformanceStats,
     betTypePerformanceStats,
     oddsRangePerformanceStats,
+    stakePerformanceStats,
+    streaks
   };
 }
