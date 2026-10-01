@@ -19,6 +19,7 @@ import { DeleteBetButton } from "@/components/bets/DeleteBetButton";
 import { Users } from "lucide-react";
 import { DailyPerformanceChart } from "@/components/dashboard/DailyPerformanceChart";
 import { SportPerformanceChart } from "@/components/dashboard/SportPerformanceChart";
+import { BetTypePerformanceChart } from "@/components/dashboard/BetTypePerformanceChart";
 
 export default async function DashboardPage() {
   const userId = "user-demo-123";
@@ -78,6 +79,7 @@ export default async function DashboardPage() {
           <BankrollChart data={stats.bankrollHistory} />
           <DailyPerformanceChart data={stats.dailyStats} />
           <SportPerformanceChart data={stats.sportPerformanceStats} />
+          <BetTypePerformanceChart data={stats.betTypePerformanceStats}/>
         </div>
 
         {/* Grid de KPIs */}
