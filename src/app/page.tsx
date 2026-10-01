@@ -17,6 +17,7 @@ import {
 import Link from "next/link";
 import { DeleteBetButton } from "@/components/bets/DeleteBetButton";
 import { Users } from "lucide-react";
+import { DailyPerformanceChart } from "@/components/dashboard/DailyPerformanceChart";
 
 export default async function DashboardPage() {
   const userId = "user-demo-123";
@@ -72,6 +73,11 @@ export default async function DashboardPage() {
           netProfit={stats.netProfit}
         />
 
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <BankrollChart data={stats.bankrollHistory} />
+          <DailyPerformanceChart data={stats.dailyStats} />
+        </div>
+
         {/* Grid de KPIs */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <KpiCard
@@ -106,9 +112,6 @@ export default async function DashboardPage() {
             trend="neutral"
           />
         </div>
-
-        {/* Gráfico de rendimiento */}
-        <BankrollChart data={stats.bankrollHistory} />
 
         {/* Actividad Reciente */}
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur-sm">
